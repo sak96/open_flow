@@ -1,9 +1,0 @@
-[package]
-name = "open_flow"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-smol = "2.0"
-xcap = "0.4"
-mouse_position = "0.1.4"
