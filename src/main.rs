@@ -1,45 +1,35 @@
-use mouse_position::mouse_position::Mouse;
-use smol::Timer;
-use std::time::Duration;
-use xcap::Monitor;
-use xcap::image::RgbaImage;
+use crate::action::{ActionEvent, action_loop};
+use crate::config::Config;
+use crate::screenshot::screenshot_loop;
+use smol::{Executor, channel};
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
-const LIMIT: usize = 2;
+mod action;
+mod config;
+mod screenshot;
 
-// Async function to process screenshots list
-async fn process_screenshots(screenshots: Vec<Vec<u8>>) {
-    println!("Processing {} screenshots", screenshots.len());
-    for (i, img) in screenshots.iter().enumerate() {
-        println!("Screenshot {} size: {} bytes", i, img.len());
-    }
-}
+// ==================== MAIN ====================
 
-fn capture_screenshot() -> Option<RgbaImage> {
-    // Capture the first available display's screenshot
-    if let Mouse::Position { x, y } = Mouse::get_mouse_position() {
-        let monitor = Monitor::from_point(x, y).ok()?;
-        return monitor.capture_image().ok();
-    }
-    None
-}
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = Arc::new(Config::default());
+    let running = Arc::new(AtomicBool::new(true));
 
-fn main() {
-    smol::block_on(async {
-        let mut screenshots = Vec::new();
+    // Bounded channel with backpressure (capacity: 1000 events)
+    let (sender, receiver) = channel::bounded::<ActionEvent>(1000);
 
-        loop {
-            if let Some(img) = capture_screenshot() {
-                screenshots.push(img.to_vec());
-            } else {
-                eprintln!("Failed to capture screenshot");
-            }
+    let ex = Executor::new();
 
-            if screenshots.len() >= LIMIT {
-                process_screenshots(screenshots).await;
-                screenshots = Vec::new();
-            }
+    println!("Starting Input Capture System");
+    println!("Press Ctrl+C to exit");
 
-            Timer::after(Duration::from_secs(1)).await;
-        }
-    });
+    smol::block_on(ex.run(async {
+        // Start action loop
+        action_loop(sender, running.clone(), config.clone()).await?;
+
+        // Start screenshot loop
+        screenshot_loop(receiver, running, config).await?;
+
+        Ok::<(), Box<dyn std::error::Error>>(())
+    }))
 }

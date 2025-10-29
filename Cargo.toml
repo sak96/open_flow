@@ -4,6 +4,23 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# Async runtime - lightweight and efficient
 smol = "2.0"
-xcap = "0.4"
-mouse_position = "0.1.4"
+
+# Screenshot library - cross-platform
+xcap = "0.0.10"
+
+# Image processing
+image = { version = "0.24", default-features = false, features = ["png"] }
+
+# Platform-specific input capture
+[target.'cfg(target_os = "linux")'.dependencies]
+evdev = "0.12"
+
+[target.'cfg(any(target_os = "macos", target_os = "windows"))'.dependencies]
+rdev = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = true
+
