@@ -2,7 +2,7 @@ from textwrap import dedent
 
 from openai import AsyncOpenAI
 
-from open_flow.models import Action
+from open_flow.models import Screenshot
 from open_flow.screenshot import SCREENSHOT
 
 client = AsyncOpenAI()
@@ -17,7 +17,7 @@ SYSTEM_PROMPT = dedent(
 )
 
 
-async def describe_pillow_image(image_url: str, events: list[Action]):
+async def describe_pillow_image(screenshot: Screenshot):
     # Convert Pillow image to PNG in memory and encode as base64
     response = await client.chat.completions.create(
         model="gemma3:latest",
@@ -38,13 +38,12 @@ async def describe_pillow_image(image_url: str, events: list[Action]):
                     #     "type": "text",
                     #     "text": events,
                     # },
-                    {"type": "image_url", "image_url": {"url": image_url}},
+                    {"type": "image_url", "image_url": {"url": screenshot.img}},
                 ],
             },
         ],
     )
     if content := response.choices[0].message.content:
-        print(events)
         print("output:", content.strip())
     else:
         print("issues")
@@ -52,6 +51,5 @@ async def describe_pillow_image(image_url: str, events: list[Action]):
 
 async def dequeue_and_print_task():
     while True:
-        details = await SCREENSHOT.get()
-        print("getting description")
-        await describe_pillow_image(details["img"], details["events"])
+        screenshot = await SCREENSHOT.get()
+        await describe_pillow_image(screenshot)

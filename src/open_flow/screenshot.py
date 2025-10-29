@@ -2,8 +2,6 @@ import base64
 from asyncio import Queue, sleep
 from datetime import datetime
 from io import BytesIO
-from json import dumps
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pyscreenshot import grab
@@ -38,12 +36,9 @@ async def screenshot_task():
                 event = await ACTIONS.get()
                 events.append(event)
             screenshot = Screenshot(
-                time=now,
+                time=now.isoformat(),
                 events=events,
                 img=img,  # type: ignore
-            )
-            _ = (Path("~/temp/screenshot") / f"{now}.json").write_text(
-                dumps(screenshot)
             )
             await SCREENSHOT.put(screenshot)
             print(f"Screenshot taken at {now}")

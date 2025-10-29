@@ -1,6 +1,6 @@
-from datetime import datetime
 from enum import StrEnum, auto
-from typing import TypedDict
+
+from pydantic import BaseModel
 
 
 class ActionType(StrEnum):
@@ -8,13 +8,13 @@ class ActionType(StrEnum):
     key = auto()
 
 
-class Action(TypedDict):
+class Action(BaseModel):
     ty: ActionType
     value: str
     position: tuple[int, int] | None
 
 
-class Screenshot(TypedDict):
-    time: datetime
+class Screenshot(BaseModel):
+    time: str
     img: str
     events: list[Action]
