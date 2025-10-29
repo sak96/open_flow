@@ -1,4 +1,5 @@
 use crate::config::Config;
+use log::{error, info};
 use smol::{Timer, channel};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -88,7 +89,7 @@ pub async fn action_loop(
 
             if is_keyboard || is_mouse {
                 if config.debug_mode {
-                    println!(
+                    info!(
                         "Found device: {} - {:?}",
                         dev.name().unwrap_or("unknown"),
                         path
@@ -105,7 +106,7 @@ pub async fn action_loop(
         return Err("No input devices found. Add user to 'input' group.".into());
     }
 
-    println!("Monitoring {} input devices", devices.len());
+    info!("Monitoring {} input devices", devices.len());
 
     // Spawn async task for each device
     for mut device in devices {
@@ -124,7 +125,7 @@ pub async fn action_loop(
                         }
                     }
                     Err(e) => {
-                        eprintln!("Error reading events: {}", e);
+                        error!("Error reading events: {}", e);
                         Timer::after(Duration::from_millis(100)).await;
                     }
                 }
@@ -193,7 +194,7 @@ pub async fn action_loop(
     // rdev's listen() is blocking, so run in separate thread
     thread::spawn(move || {
         if config.debug_mode {
-            println!("Starting rdev listener...");
+            info!("Starting rdev listener...");
         }
 
         let _ = listen(move |event: Event| {

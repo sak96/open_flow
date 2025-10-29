@@ -1,5 +1,6 @@
 use crate::Config;
 use crate::action::{ActionEvent, ActionType};
+use log::{error, info};
 use smol::{Timer, channel};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -20,7 +21,7 @@ pub async fn screenshot_loop(
         .find(|m| m.is_primary())
         .ok_or("No primary monitor found")?;
 
-    println!(
+    info!(
         "Screenshot loop started. Monitor: {}x{}",
         monitor.width(),
         monitor.height()
@@ -39,12 +40,12 @@ pub async fn screenshot_loop(
             Ok(_image) => {
                 last_screenshot = Instant::now();
                 if config.debug_mode {
-                    println!("Screenshot captured");
+                    info!("Screenshot captured");
                 }
                 // Process or save image here
             }
             Err(e) => {
-                eprintln!("Failed to capture: {}", e);
+                error!("Failed to capture: {}", e);
                 Timer::after(Duration::from_millis(100)).await;
                 continue;
             }
@@ -62,16 +63,16 @@ pub async fn screenshot_loop(
                     } else {
                         // Non-printable event: print buffer and take screenshot
                         if !text_buffer.is_empty() {
-                            println!("Text: \"{}\"", text_buffer);
+                            info!("Text: \"{}\"", text_buffer);
                             text_buffer.clear();
                         }
 
                         match &action.event_type {
                             ActionType::Key { value } => {
-                                println!("Special key: {}", value);
+                                info!("Special key: {}", value);
                             }
                             ActionType::Mouse { value, position } => {
-                                println!("Mouse {:?} at {:?}", value, position);
+                                info!("Mouse {:?} at {:?}", value, position);
                             }
                         }
 

@@ -13,6 +13,10 @@ xcap = "0.0.10"
 # Image processing
 image = { version = "0.24", default-features = false, features = ["png"] }
 
+# Logger
+log = "0.4"
+simple_logger = "5.1"
+
 # Platform-specific input capture
 [target.'cfg(target_os = "linux")'.dependencies]
 evdev = "0.12"
@@ -23,4 +27,3 @@ rdev = "0.5"
 [profile.release]
 opt-level = 3
 lto = true
-
