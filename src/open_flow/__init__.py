@@ -1,7 +1,8 @@
-from asyncio import run, TaskGroup, Task
-from listeners import start_listeners
-from screenshot import screenshot_task
-from ai import dequeue_and_print_task
+from asyncio import Task, TaskGroup, run
+
+from open_flow.ai import dequeue_and_print_task
+from open_flow.listeners import start_listeners
+from open_flow.screenshot import screenshot_task
 
 
 async def main():
@@ -10,6 +11,10 @@ async def main():
         tasks.append(tg.create_task(screenshot_task()))
         tasks.append(tg.create_task(start_listeners()))
         tasks.append(tg.create_task(dequeue_and_print_task()))
+
+
+def cli():
+    run(main())
 
 
 if __name__ == "__main__":

@@ -1,7 +1,9 @@
-from openai import AsyncOpenAI
-from screenshot import SCREENSHOT
 from textwrap import dedent
-from models import Action
+
+from openai import AsyncOpenAI
+
+from open_flow.models import Action
+from open_flow.screenshot import SCREENSHOT
 
 client = AsyncOpenAI()
 

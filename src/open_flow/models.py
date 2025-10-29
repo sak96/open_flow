@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import TypedDict
 from enum import StrEnum, auto
+from typing import TypedDict
 
 
 class ActionType(StrEnum):

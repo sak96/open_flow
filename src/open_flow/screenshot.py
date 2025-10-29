@@ -1,15 +1,15 @@
-from asyncio import Queue, sleep
-from models import Screenshot
-from datetime import datetime
-from pyscreenshot import grab
-from listeners import ACTIONS
-from models import Action
-from pathlib import Path
-from json import dumps
 import base64
+from asyncio import Queue, sleep
+from datetime import datetime
 from io import BytesIO
+from json import dumps
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pyscreenshot import grab
+
+from open_flow.listeners import ACTIONS
+from open_flow.models import Action, Screenshot
 
 if TYPE_CHECKING:
     from PIL import Image  # noqa: F401

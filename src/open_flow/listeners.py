@@ -1,5 +1,6 @@
-from asyncio import Queue, TaskGroup, Task
-from models import Action, ActionType
+from asyncio import Queue, Task, TaskGroup
+
+from open_flow.models import Action, ActionType
 
 ACTIONS: Queue[Action] = Queue()
 
@@ -23,7 +24,11 @@ async def start_listeners():
         keyboard.Listener(on_press=on_key_event).start()
         mouse.Listener(on_click=on_mouse_event).start()
     except Exception:
-        from evdev import ecodes, list_devices, InputDevice  # pyright: ignore[reportUnknownVariableType]
+        from evdev import (  # pyright: ignore[reportUnknownVariableType]
+            InputDevice,
+            ecodes,
+            list_devices,
+        )
         from evdev.ecodes import keys
         from evdev.eventio_async import EventIO
 
