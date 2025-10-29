@@ -1,14 +1,15 @@
 use crate::Config;
 use crate::action::{ActionEvent, ActionType};
 use log::{error, info};
-use smol::{Timer, channel};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
+use tokio::sync::mpsc;
+use tokio::time::sleep;
 use xcap::Monitor;
 
 pub async fn screenshot_loop(
-    receiver: channel::Receiver<ActionEvent>,
+    mut receiver: mpsc::Receiver<ActionEvent>,
     running: Arc<AtomicBool>,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -31,7 +32,7 @@ pub async fn screenshot_loop(
         // Throttle screenshot rate
         let elapsed = last_screenshot.elapsed();
         if elapsed < Duration::from_millis(config.screenshot_throttle_ms) {
-            Timer::after(Duration::from_millis(10)).await;
+            sleep(Duration::from_millis(10)).await;
             continue;
         }
 
@@ -46,7 +47,7 @@ pub async fn screenshot_loop(
             }
             Err(e) => {
                 error!("Failed to capture: {}", e);
-                Timer::after(Duration::from_millis(100)).await;
+                sleep(Duration::from_millis(100)).await;
                 continue;
             }
         }
@@ -79,16 +80,16 @@ pub async fn screenshot_loop(
                         break; // Loop back to take new screenshot
                     }
                 }
-                Err(channel::TryRecvError::Empty) => {
+                Err(mpsc::error::TryRecvError::Empty) => {
                     break; // No more events
                 }
-                Err(channel::TryRecvError::Closed) => {
+                Err(mpsc::error::TryRecvError::Disconnected) => {
                     return Ok(());
                 }
             }
         }
 
-        Timer::after(Duration::from_millis(10)).await;
+        sleep(Duration::from_millis(10)).await;
     }
 
     Ok(())

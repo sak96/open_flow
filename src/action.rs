@@ -1,9 +1,10 @@
 use crate::config::Config;
 use log::{error, info};
-use smol::{Timer, channel};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
+use tokio::sync::mpsc;
+use tokio::time::sleep;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::thread;
@@ -78,7 +79,7 @@ impl ActionEvent {
 
 #[cfg(target_os = "linux")]
 pub async fn action_loop(
-    sender: channel::Sender<ActionEvent>,
+    sender: mpsc::Sender<ActionEvent>,
     running: Arc<AtomicBool>,
     config: Arc<Config>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -115,7 +116,8 @@ pub async fn action_loop(
         let running_clone = running.clone();
         let config_clone = config.clone();
 
-        smol::spawn(async move {
+        tokio::spawn(async move {
+            info!("Monitoring {:?} input devices started", device.name());
             while running_clone.load(Ordering::Relaxed) {
                 match device.fetch_events() {
                     Ok(events) => {
@@ -127,12 +129,12 @@ pub async fn action_loop(
                     }
                     Err(e) => {
                         error!("Error reading events: {}", e);
-                        Timer::after(Duration::from_millis(100)).await;
+                        sleep(Duration::from_millis(100)).await;
                     }
                 }
             }
-        })
-        .detach();
+            info!("Monitoring {:?} input devices ended", device.name());
+        });
     }
 
     Ok(())

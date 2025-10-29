@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 # Async runtime - lightweight and efficient
-smol = "2.0"
+tokio = { version = "1.48", features = ["full"] }
 
 # Screenshot library - cross-platform
 xcap = "0.0.10"
