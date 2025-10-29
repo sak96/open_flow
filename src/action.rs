@@ -17,6 +17,7 @@ use rdev::{Button, Event, EventType as RdevEventType, listen};
 // Unified event structure with timestamp
 #[derive(Debug, Clone)]
 pub struct ActionEvent {
+    #[allow(dead_code)]
     pub timestamp: Instant,
     pub event_type: ActionType,
 }
