@@ -5,6 +5,7 @@ from io import BytesIO
 from typing import TYPE_CHECKING
 
 from pyscreenshot import grab
+from pywinctl import getActiveWindow
 
 from open_flow.listeners import ACTIONS
 from open_flow.models import Action, Screenshot
@@ -17,8 +18,8 @@ SCREENSHOT: Queue[Screenshot] = Queue()
 WAIT_TIME: int = 1
 
 
-def screenshot_url() -> str:
-    image: Image.Image = grab()  # pyright: ignore[reportAssignmentType]
+def screenshot_url(bbox: tuple[int, int, int, int]) -> str:
+    image: Image.Image = grab(bbox)  # pyright: ignore[reportAssignmentType]
     buf = BytesIO()
     image.save(buf, format="PNG")
     image_bytes = buf.getvalue()
@@ -30,7 +31,10 @@ async def screenshot_task():
     while True:
         if not ACTIONS.empty():
             now = datetime.now()
-            img = screenshot_url()
+            if not (win := getActiveWindow()):
+                print("cound not get active window")
+                continue
+            img = screenshot_url(win.getClientFrame())
             events: list[Action] = []
             while not ACTIONS.empty():
                 event = await ACTIONS.get()
